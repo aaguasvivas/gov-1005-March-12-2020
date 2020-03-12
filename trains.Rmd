@@ -31,7 +31,7 @@ train %>%
 
 # Note the pattern above, and as discussed in class. First, we calculate
 # something, like mean income, just using standard R. Then, some where in the
-# middle of that pipe, we need to do the bootsrap, which almost always requires
+# middle of that pipe, we need to do the bootstrap, which almost always requires
 # rep_sample_n() followed by group_by(replicate). The exact order and structure
 # can vary. But this basic approach --- calculate something basic, then do
 # bootstrap/group_by in the "middle" of that calculation --- is one we will use
@@ -43,7 +43,7 @@ train %>%
 # the two. Main trick is the use of pivot_wider() to get these things on the
 # same row. That subtraction is easier.
 
-train %>% 
+difference <- train %>% 
   group_by(treatment) %>% 
   summarise(avg_inc = mean(income)) %>% 
   pivot_wider(names_from = treatment, values_from = avg_inc) %>% 
@@ -65,11 +65,27 @@ train %>%
 
 1) Now that we know the difference in mean income between treated and control in this sample, we want to get a confidence interval for that difference. If we had sampled commuters other than the ones that we did sample, the difference would be different. How different might it be? Are these results consistent with the claim, made in the article, that treatment was randomly assigned?
 
+```{r 1}
+
+difference <- train %>% 
+  rep_sample_n(size = 115, replace = TRUE, reps = 1000) %>%
+  group_by(treatment, replicate) %>% 
+  summarise(avg_inc = mean(income)) %>%
+  pivot_wider(names_from = treatment, values_from = avg_inc) %>% 
+  mutate(Difference = Treated - Control) %>% 
+  select(replicate, Difference, everything()) %>%
+  pull(Difference) %>%
+  quantile(c(0.025, 0.975))
+
+```
 
 
 
 2) The focus of the article is on the change in attitude. In our data, this is the variable att_chg. (Note that we have scaled this somewhat differently than the article did.) Recall that a positive attitude change means that a person has become more conservative in their opinions about immigration.
 
+```{r 2}
+
+```
 
 
 3) What is the difference in att_chg between the Treated and Control?
